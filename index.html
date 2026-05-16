@@ -15,16 +15,16 @@
             <h1 class="text-2xl font-black text-orange-500 mb-1 flex items-center justify-center gap-2">
                 <i class="fa-solid fa-sync animate-spin text-orange-400"></i> SHOPEE VOUCHER BYPASS 22%
             </h1>
-            <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Tối ưu hóa bộ lọc iOS - Đồng bộ cấu trúc ăn mã 22%</p>
+            <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Hỗ trợ đầy đủ tên miền vn.shp.ee & shopee.vn</p>
         </div>
 
         <!-- Input Section -->
         <div class="space-y-4">
             <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                    Nhập nội dung chứa link (Hỗ trợ tốt sao chép từ iPhone/iPad):
+                    Nhập nội dung chứa link (Chấp nhận tất cả các loại link rút gọn từ App Shopee):
                 </label>
-                <textarea id="inputContent" rows="6" placeholder="Dán các đường link copy từ iOS tại đây..." 
+                <textarea id="inputContent" rows="6" placeholder="Dán các đường link dạng vn.shp.ee hoặc shopee.vn tại đây..." 
                           class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-sm text-white placeholder-slate-600 font-mono resize-none shadow-inner"></textarea>
             </div>
 
@@ -78,21 +78,21 @@
             btnSubmit.innerHTML = `<i class="fa-solid fa-circle-notch animate-spin"></i> ĐANG KHỞI TẠO LUỒNG LINK...`;
             container.innerHTML = ''; 
 
-            // BẺ KHÓA KÝ TỰ ĐẶC BIỆT CỦA IOS: Thay thế tất cả các dạng khoảng trắng ẩn, dấu cách ẩn thành dấu cách chuẩn
+            // SỬA LỖI IOS: Dọn dẹp khoảng trắng ẩn của bàn phím Apple
             inputContent = inputContent.replace(/[\u00a0\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]/g, ' ');
 
-            // BỘ LỌC ĐA NĂNG MỚI (Bất chấp chữ hoa, chữ thường, dấu cách lạ từ iOS)
-            const shopeeUrlRegex = /(https?:\/\/[^\s\r\n]*shopee\.vn[^\s\r\n]*)/gi;
+            // NÂNG CẤP BỘ LỌC REGEX: Bắt trọn shopee.vn, s.shopee.vn, vn.shp.ee, shp.ee (Không phân biệt hoa thường)
+            const shopeeUrlRegex = /(https?:\/\/[^\s\r\n]*(?:shopee\.vn|shp\.ee)[^\s\r\n]*)/gi;
             let foundUrls = inputContent.match(shopeeUrlRegex);
 
             if (!foundUrls || foundUrls.length === 0) {
-                alert("Không tìm thấy link Shopee hợp lệ! Hệ thống đã tối ưu lại bộ lọc, bạn hãy thử copy lại dòng link nguyên bản từ bài viết nhé.");
+                alert("Không tìm thấy link Shopee hoặc vn.shp.ee nào hợp lệ!");
                 btnSubmit.disabled = false;
                 btnSubmit.innerHTML = `<i class="fa-solid fa-bolt"></i> CHUYỂN ĐỔI LINK ĂN MÃ 22%`;
                 return;
             }
 
-            // Làm sạch các dấu câu phổ biến dính ở cuối link do thói quen viết bài
+            // Làm sạch các dấu câu dính ở đuôi link
             let uniqueUrls = [...new Set(foundUrls)].map(url => {
                 let u = url;
                 while (u.endsWith('.') || u.endsWith(',') || u.endsWith(')') || u.endsWith(']') || u.endsWith('"') || u.endsWith("'")) {
@@ -105,11 +105,13 @@
                 let finalShopeeUrl = "";
                 let lowerUrl = rawUrl.toLowerCase();
 
-                // Kiểm tra loại link phân luồng xử lý
-                if (lowerUrl.includes("s.shopee.vn") && !lowerUrl.includes("an_redir")) {
+                // PHÂN LOẠI XỬ LÝ LINK THEO TÊN MIỀN
+                if ((lowerUrl.includes("s.shopee.vn") || lowerUrl.includes("shp.ee")) && !lowerUrl.includes("an_redir")) {
+                    // Nếu là các loại link ngắn (s.shopee.vn hoặc vn.shp.ee), chèn trực tiếp tham số để app tự nhận diện chiến dịch quảng cáo
                     let separator = rawUrl.includes('?') ? '&' : '?';
                     finalShopeeUrl = `${rawUrl}${separator}affiliate_id=${CAMPAIGN_AFFILIATE_ID}&sub_id=${MY_SUB_ID}&utm_source=facebook&utm_medium=cpas&utm_campaign=FB_ADS_VOUCHER22`;
                 } else {
+                    // Nếu là link dài hoặc link an_redir mẫu của Huy, bóc tách ID cấu trúc
                     finalShopeeUrl = buildStrictAnRedir(rawUrl);
                 }
 
@@ -119,7 +121,7 @@
 
             resultBox.classList.remove('hidden');
             btnSubmit.disabled = false;
-            btnSubmit.innerHTML = `<i class="fa-solid fa-bolt"></i> CHUYỂN ĐỔI LINK HÀNG LOẠT`;
+            btnSubmit.innerHTML = `<i class="fa-solid fa-bolt"></i> CHUYỂN ĐỔI LINK ĂN MÃ 22%`;
         }
 
         function buildStrictAnRedir(url) {
@@ -138,7 +140,6 @@
                 } catch(e){}
             }
 
-            // Trích xuất mã định danh sản phẩm từ link dài
             const itemMatch = targetUrl.match(/(?:i\.(\d+)?\.(\d+)|product\/(\d+)\/(\d+))/i);
             if (itemMatch) {
                 let shopId = itemMatch[1] || itemMatch[3];
