@@ -11,7 +11,7 @@
     <div class="bg-slate-800 p-6 rounded-2xl shadow-2xl max-w-md w-full border border-slate-700">
         <div class="text-center mb-6">
             <h1 class="text-2xl font-bold text-orange-500 mb-2">🛍️ Shopee FB Voucher</h1>
-            <p class="text-sm text-slate-400">Hệ thống Bypass thuật toán - Kích hoạt giao diện ưu đãi Facebook 22%</p>
+            <p class="text-sm text-slate-400">Hệ thống Bypass thuật toán - Kích nổ giao diện & Mã giảm 22% độc quyền</p>
         </div>
 
         <div class="space-y-4">
@@ -38,21 +38,24 @@
             </a>
 
             <a id="openDirectBtn" href="#" target="_blank" class="block text-center w-full bg-orange-600 hover:bg-orange-500 text-white font-medium py-3 rounded-xl transition-all shadow-md">
-                🟠 Bước 2: Vào thẳng Shopee hiện "Mua với ưu đãi"
+                🟠 Bước 2: Vào thẳng Shopee lấy mã 22%
             </a>
         </div>
 
         <div class="mt-6 p-3 bg-slate-700/50 rounded-xl border border-slate-700/60 text-xs text-slate-400 space-y-2">
             <p class="font-semibold text-slate-300">💡 Quy trình săn mã chuẩn:</p>
-            <p>1. Nhập link sản phẩm và bấm nút <b>Kích Hoạt Mã Giảm Giá</b>.</p>
-            <p>2. Bấm nút <b>Màu xanh</b> trước để app Facebook nạp cấu hình ưu đãi vào hệ thống.</p>
-            <p>3. Quay lại bấm nút <b>Màu cam</b> để mở thẳng app Shopee, kiểm tra nút "Mua với ưu đãi" hoặc vào giỏ hàng áp mã.</p>
+            <p>1. Nhập link sản phẩm bạn muốn mua và bấm nút <b>Kích Hoạt</b>.</p>
+            <p>2. Bấm nút <b>Màu xanh</b> để app Facebook kích nổ quyền nhận mã 22% cho tài khoản.</p>
+            <p>3. Quay lại bấm nút <b>Màu cam</b> để vào thẳng giao diện sản phẩm trên Shopee để áp mã.</p>
         </div>
     </div>
 
     <script>
-        // Tên tài khoản nhận hoa hồng của bạn
+        // ID Tài khoản nhận hoa hồng Affiliate của bạn
         const MY_SUB_ID = "BHH2608"; 
+        
+        // ID chiến dịch đặc quyền nhả mã 22% (Lấy từ link gốc bạn cung cấp)
+        const CAMPAIGN_AFFILIATE_ID = "17368880232"; 
 
         function convertShopeeLink() {
             const inputLink = document.getElementById('shopeeLink').value.trim();
@@ -66,39 +69,60 @@
                 return;
             }
 
-            let targetUrl = inputLink;
-
-            // Bóc tách ID shop và ID sản phẩm chuẩn từ link dài
-            const itemMatch = inputLink.match(/(?:i\.(\d+)?\.(\d+)|product\/(\d+)\/(\d+))/);
-            if (itemMatch) {
-                let shopId = itemMatch[1] || itemMatch[3];
-                let itemId = itemMatch[2] || itemMatch[4];
-                targetUrl = `https://shopee.vn/product/${shopId}/${itemId}`;
+            // Hàm bóc tách lấy ID Shop và ID Sản phẩm từ link bất kỳ
+            function extractProductInfo(url) {
+                const match = url.match(/(?:i\.(\d+)?\.(\d+)|product\/(\d+)\/(\d+))/);
+                if (match) {
+                    let shopId = match[1] || match[3];
+                    let itemId = match[2] || match[4];
+                    return { shopId, itemId };
+                }
+                return null;
             }
 
-            // Cấu trúc lại các tham số tham chiếu (parameters) ép hiển thị ưu đãi campaign
-            // Thêm các cờ đặc quyền: is_from_sharing=true, dsp_ad_id, và ép nguồn cpas_seller
-            let campaignParams = `?utm_source=facebook&utm_medium=seller&utm_campaign=FB_ADS_VOUCHER22&pid=facebook_cpas&is_from_sharing=true&smtt=0.0.9&af_siteid=${MY_SUB_ID}&sub_id=${MY_SUB_ID}&sub_id2=fb_voucher_preferential&sub_id3=BHH2608_PRO`;
-            
-            // Tạo link đích chuẩn hóa tích hợp sâu tham số
-            let finalShopeeUrl;
-            if (targetUrl.includes('?')) {
-                // Nếu link gốc đã có sẵn tham số, ta nối tiếp bằng dấu &
-                finalShopeeUrl = targetUrl + campaignParams.replace('?', '&');
+            // Xử lý tạo link theo cấu trúc an_redir xịn của Huy
+            function generateFinalUrl(shopId, itemId) {
+                let originLink = `https://shopee.vn/product/${shopId}/${itemId}`;
+                let encodedOrigin = encodeURIComponent(originLink);
+                
+                // Ép cấu trúc cổng an_redir + chiến dịch nhả mã + sub_id của bạn
+                return `https://s.shopee.vn/an_redir?origin_link=${encodedOrigin}&affiliate_id=${CAMPAIGN_AFFILIATE_ID}&sub_id=${MY_SUB_ID}`;
+            }
+
+            // Kiểm tra xem link nhập vào có phải link rút gọn s.shopee.vn không
+            if (inputLink.includes("s.shopee.vn") && !inputLink.includes("an_redir")) {
+                // Đối với link s.shopee.vn rút gọn, hệ thống cần thời gian phân giải link trên app.
+                // Để tối ưu nhất, ta sẽ chuyển thẳng link này kết hợp với tham số chiến dịch trực tiếp.
+                let finalShopeeUrl = inputLink + (inputLink.includes('?') ? '&' : '?') + `affiliate_id=${CAMPAIGN_AFFILIATE_ID}&sub_id=${MY_SUB_ID}`;
+                let fbDeepLink = `fb://facewebmodal/fblink?href=${encodeURIComponent(finalShopeeUrl)}`;
+                
+                convertedUrlDiv.innerText = finalShopeeUrl;
+                openViaFbBtn.href = fbDeepLink;
+                openDirectBtn.href = finalShopeeUrl;
+                resultBox.classList.remove('hidden');
             } else {
-                finalShopeeUrl = targetUrl + campaignParams;
+                // Đối với link dài hoặc link an_redir sẵn
+                let productInfo = extractProductInfo(inputLink);
+                
+                if (!productInfo) {
+                    // Nếu không bóc tách được (ví dụ link trang chủ, link danh mục), giữ nguyên link và chèn đuôi
+                    let finalShopeeUrl = inputLink + (inputLink.includes('?') ? '&' : '?') + `affiliate_id=${CAMPAIGN_AFFILIATE_ID}&sub_id=${MY_SUB_ID}`;
+                    let fbDeepLink = `fb://facewebmodal/fblink?href=${encodeURIComponent(finalShopeeUrl)}`;
+                    
+                    convertedUrlDiv.innerText = finalShopeeUrl;
+                    openViaFbBtn.href = fbDeepLink;
+                    openDirectBtn.href = finalShopeeUrl;
+                } else {
+                    // Nếu là link sản phẩm chuẩn, ép hẳn vào bộ khung tạo mã 22%
+                    let finalShopeeUrl = generateFinalUrl(productInfo.shopId, productInfo.itemId);
+                    let fbDeepLink = `fb://facewebmodal/fblink?href=${encodeURIComponent(finalShopeeUrl)}`;
+                    
+                    convertedUrlDiv.innerText = finalShopeeUrl;
+                    openViaFbBtn.href = fbDeepLink;
+                    openDirectBtn.href = finalShopeeUrl;
+                }
+                resultBox.classList.remove('hidden');
             }
-
-            // Tạo Deep Link bắt buộc chạy qua cổng trình duyệt ảo (facewebmodal) của Facebook
-            let fbDeepLink = `fb://facewebmodal/fblink?href=${encodeURIComponent(finalShopeeUrl)}`;
-
-            // Hiển thị và gán link vào các nút chức năng
-            convertedUrlDiv.innerText = finalShopeeUrl;
-            openViaFbBtn.href = fbDeepLink;
-            openDirectBtn.href = finalShopeeUrl;
-            
-            // Hiện khung kết quả
-            resultBox.classList.remove('hidden');
         }
     </script>
 </body>
