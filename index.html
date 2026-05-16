@@ -11,7 +11,7 @@
     <div class="bg-slate-800 p-6 rounded-2xl shadow-2xl max-w-md w-full border border-slate-700">
         <div class="text-center mb-6">
             <h1 class="text-2xl font-bold text-orange-500 mb-2">🛍️ Shopee FB Voucher</h1>
-            <p class="text-sm text-slate-400">Hệ thống Bypass thuật toán - Kích hoạt mã 22% Facebook độc quyền</p>
+            <p class="text-sm text-slate-400">Hệ thống Bypass thuật toán - Kích hoạt giao diện ưu đãi Facebook 22%</p>
         </div>
 
         <div class="space-y-4">
@@ -31,26 +31,27 @@
                 ✅ Đã đồng bộ cấu trúc mã 22% thành công!
             </p>
             <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 break-all text-xs text-slate-400 mb-4 font-mono" id="convertedUrl">
-                </div>
+            </div>
             
             <a id="openViaFbBtn" href="#" target="_blank" class="block text-center w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 rounded-xl transition-all shadow-md mb-3">
-                🔵 Bước 1: Kích hoạt mã qua App Facebook
+                🔵 Bước 1: Kích hoạt ưu đãi qua App Facebook
             </a>
 
             <a id="openDirectBtn" href="#" target="_blank" class="block text-center w-full bg-orange-600 hover:bg-orange-500 text-white font-medium py-3 rounded-xl transition-all shadow-md">
-                🟠 Bước 2: Vào thẳng Shopee áp mã sản phẩm
+                🟠 Bước 2: Vào thẳng Shopee hiện "Mua với ưu đãi"
             </a>
         </div>
 
         <div class="mt-6 p-3 bg-slate-700/50 rounded-xl border border-slate-700/60 text-xs text-slate-400 space-y-2">
             <p class="font-semibold text-slate-300">💡 Quy trình săn mã chuẩn:</p>
-            <p>1. Bấm nút <b>màu xanh</b> trước để app Facebook kích nổ mã 22% hệ thống.</p>
-            <p>2. Quay lại bấm nút <b>màu cam</b> để vào thẳng sản phẩm trong app Shopee và thanh toán.</p>
+            <p>1. Nhập link sản phẩm và bấm nút <b>Kích Hoạt Mã Giảm Giá</b>.</p>
+            <p>2. Bấm nút <b>Màu xanh</b> trước để app Facebook nạp cấu hình ưu đãi vào hệ thống.</p>
+            <p>3. Quay lại bấm nút <b>Màu cam</b> để mở thẳng app Shopee, kiểm tra nút "Mua với ưu đãi" hoặc vào giỏ hàng áp mã.</p>
         </div>
     </div>
 
     <script>
-        // ĐIỀN TÊN TÀI KHOẢN CỦA BẠN VÀO ĐÂY ĐỂ ĐÈ COOKIE NHẬN HOA HỒNG
+        // Tên tài khoản nhận hoa hồng của bạn
         const MY_SUB_ID = "BHH2608"; 
 
         function convertShopeeLink() {
@@ -67,7 +68,7 @@
 
             let targetUrl = inputLink;
 
-            // Bóc tách ID sản phẩm nếu là link dài
+            // Bóc tách ID shop và ID sản phẩm chuẩn từ link dài
             const itemMatch = inputLink.match(/(?:i\.(\d+)?\.(\d+)|product\/(\d+)\/(\d+))/);
             if (itemMatch) {
                 let shopId = itemMatch[1] || itemMatch[3];
@@ -75,18 +76,24 @@
                 targetUrl = `https://shopee.vn/product/${shopId}/${itemId}`;
             }
 
-            // KỸ THUẬT MIX ID: 
-            // - Mượn cổng CPAS có quyền nhả mã (chứa pid=facebook_cpas)
-            // - Đính kèm mã SubID của bạn (sub_id=BHH2608) ở cuối để đè nhận hoa hồng
-            let finalShopeeUrl = `https://shopee.vn/universal-link?redir=${encodeURIComponent(targetUrl)}&utm_source=facebook&utm_medium=cpas&utm_campaign=FB_ADS_VOUCHER22&pid=facebook_cpas&sub_id=${MY_SUB_ID}&sub_id2=fb_voucher&sub_id3=BHH2608_PRO`;
+            // Cấu trúc lại các tham số tham chiếu (parameters) ép hiển thị ưu đãi campaign
+            // Thêm các cờ đặc quyền: is_from_sharing=true, dsp_ad_id, và ép nguồn cpas_seller
+            let campaignParams = `?utm_source=facebook&utm_medium=seller&utm_campaign=FB_ADS_VOUCHER22&pid=facebook_cpas&is_from_sharing=true&smtt=0.0.9&af_siteid=${MY_SUB_ID}&sub_id=${MY_SUB_ID}&sub_id2=fb_voucher_preferential&sub_id3=BHH2608_PRO`;
+            
+            // Tạo link đích chuẩn hóa tích hợp sâu tham số
+            let finalShopeeUrl;
+            if (targetUrl.includes('?')) {
+                // Nếu link gốc đã có sẵn tham số, ta nối tiếp bằng dấu &
+                finalShopeeUrl = targetUrl + campaignParams.replace('?', '&');
+            } else {
+                finalShopeeUrl = targetUrl + campaignParams;
+            }
 
-            // Tạo Deep Link ép mở qua app Facebook để kích hoạt nguồn traffic sạch
+            // Tạo Deep Link bắt buộc chạy qua cổng trình duyệt ảo (facewebmodal) của Facebook
             let fbDeepLink = `fb://facewebmodal/fblink?href=${encodeURIComponent(finalShopeeUrl)}`;
 
-            // Xuất kết quả hiển thị
+            // Hiển thị và gán link vào các nút chức năng
             convertedUrlDiv.innerText = finalShopeeUrl;
-            
-            // Gắn link vào 2 nút tương ứng
             openViaFbBtn.href = fbDeepLink;
             openDirectBtn.href = finalShopeeUrl;
             
