@@ -15,16 +15,16 @@
             <h1 class="text-2xl font-black text-orange-500 mb-1 flex items-center justify-center gap-2">
                 <i class="fa-solid fa-sync animate-spin text-orange-400"></i> SHOPEE VOUCHER BYPASS 22%
             </h1>
-            <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Tự động bóc tách & Đồng bộ cấu trúc ăn mã theo link mẫu</p>
+            <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Tối ưu hóa bộ lọc iOS - Đồng bộ cấu trúc ăn mã 22%</p>
         </div>
 
         <!-- Input Section -->
         <div class="space-y-4">
             <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                    Nhập nội dung chứa link (Hỗ trợ cả link an_redir mẫu hoặc văn bản thô):
+                    Nhập nội dung chứa link (Hỗ trợ tốt sao chép từ iPhone/iPad):
                 </label>
-                <textarea id="inputContent" rows="6" placeholder="Dán các đường link cần chuyển đổi tại đây..." 
+                <textarea id="inputContent" rows="6" placeholder="Dán các đường link copy từ iOS tại đây..." 
                           class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-sm text-white placeholder-slate-600 font-mono resize-none shadow-inner"></textarea>
             </div>
 
@@ -54,9 +54,9 @@
     </div>
 
     <script>
-        // Cấu hình thông số hoa hồng của riêng bạn và mã chiến dịch ăn mã 22% toàn sàn
+        // Cấu hình mã hoa hồng Affiliate của bạn
         const MY_SUB_ID = "BHH2608"; 
-        const CAMPAIGN_AFFILIATE_ID = "17368880232"; // Mã định danh phân phối voucher 22% 500K
+        const CAMPAIGN_AFFILIATE_ID = "17368880232"; 
 
         function clearInput() {
             document.getElementById('inputContent').value = '';
@@ -64,12 +64,12 @@
         }
 
         function processLinks() {
-            const inputContent = document.getElementById('inputContent').value.trim();
+            let inputContent = document.getElementById('inputContent').value;
             const container = document.getElementById('linksContainer');
             const resultBox = document.getElementById('resultBox');
             const btnSubmit = document.getElementById('btnSubmit');
 
-            if (!inputContent) {
+            if (!inputContent.trim()) {
                 alert("Vui lòng nhập nội dung chứa link!");
                 return;
             }
@@ -78,21 +78,24 @@
             btnSubmit.innerHTML = `<i class="fa-solid fa-circle-notch animate-spin"></i> ĐANG KHỞI TẠO LUỒNG LINK...`;
             container.innerHTML = ''; 
 
-            // Quét tìm tất cả các chuỗi chứa link shopee.vn hoặc s.shopee.vn
-            const shopeeUrlRegex = /(https?:\/\/[^\s\n]*shopee\.vn[^\s\n]*)/g;
+            // BẺ KHÓA KÝ TỰ ĐẶC BIỆT CỦA IOS: Thay thế tất cả các dạng khoảng trắng ẩn, dấu cách ẩn thành dấu cách chuẩn
+            inputContent = inputContent.replace(/[\u00a0\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]/g, ' ');
+
+            // BỘ LỌC ĐA NĂNG MỚI (Bất chấp chữ hoa, chữ thường, dấu cách lạ từ iOS)
+            const shopeeUrlRegex = /(https?:\/\/[^\s\r\n]*shopee\.vn[^\s\r\n]*)/gi;
             let foundUrls = inputContent.match(shopeeUrlRegex);
 
             if (!foundUrls || foundUrls.length === 0) {
-                alert("Không tìm thấy link Shopee hợp lệ!");
+                alert("Không tìm thấy link Shopee hợp lệ! Hệ thống đã tối ưu lại bộ lọc, bạn hãy thử copy lại dòng link nguyên bản từ bài viết nhé.");
                 btnSubmit.disabled = false;
                 btnSubmit.innerHTML = `<i class="fa-solid fa-bolt"></i> CHUYỂN ĐỔI LINK ĂN MÃ 22%`;
                 return;
             }
 
-            // Làm sạch ký tự thừa ở đuôi link nếu có
+            // Làm sạch các dấu câu phổ biến dính ở cuối link do thói quen viết bài
             let uniqueUrls = [...new Set(foundUrls)].map(url => {
                 let u = url;
-                if (u.endsWith('.') || u.endsWith(',') || u.endsWith(')') || u.endsWith('"') || u.endsWith("'")) {
+                while (u.endsWith('.') || u.endsWith(',') || u.endsWith(')') || u.endsWith(']') || u.endsWith('"') || u.endsWith("'")) {
                     u = u.slice(0, -1);
                 }
                 return u;
@@ -100,18 +103,16 @@
 
             uniqueUrls.forEach((rawUrl, index) => {
                 let finalShopeeUrl = "";
+                let lowerUrl = rawUrl.toLowerCase();
 
-                // Phân loại xử lý link
-                if (rawUrl.includes("s.shopee.vn") && !rawUrl.includes("an_redir")) {
-                    // Nếu là link ngắn, đè trực tiếp tham số chiến dịch ăn mã vào đuôi
+                // Kiểm tra loại link phân luồng xử lý
+                if (lowerUrl.includes("s.shopee.vn") && !lowerUrl.includes("an_redir")) {
                     let separator = rawUrl.includes('?') ? '&' : '?';
                     finalShopeeUrl = `${rawUrl}${separator}affiliate_id=${CAMPAIGN_AFFILIATE_ID}&sub_id=${MY_SUB_ID}&utm_source=facebook&utm_medium=cpas&utm_campaign=FB_ADS_VOUCHER22`;
                 } else {
-                    // Nếu là link dài hoặc link an_redir mẫu, bóc tách chính xác ID sản phẩm để dựng lại cấu trúc
                     finalShopeeUrl = buildStrictAnRedir(rawUrl);
                 }
 
-                // Cấu hình Deep Link ép nhảy qua app Facebook
                 let fbDeepLink = `fb://facewebmodal/fblink?href=${encodeURIComponent(finalShopeeUrl)}`;
                 appendResultItem(container, index + 1, rawUrl, finalShopeeUrl, fbDeepLink);
             });
@@ -121,33 +122,32 @@
             btnSubmit.innerHTML = `<i class="fa-solid fa-bolt"></i> CHUYỂN ĐỔI LINK HÀNG LOẠT`;
         }
 
-        // Hàm bóc tách ID sản phẩm và ép cấu trúc an_redir CHUẨN XÁC
         function buildStrictAnRedir(url) {
             let targetUrl = url;
+            let lowerUrl = url.toLowerCase();
             
-            // Nếu link truyền vào đã là an_redir, bóc lấy origin_link được giải mã bên trong ra trước
-            if (url.includes("an_redir?")) {
+            if (lowerUrl.includes("an_redir?")) {
                 try {
-                    // Giải mã thủ công để tránh lỗi ký tự đặc biệt
-                    let searchParams = new URLSearchParams(url.split('?')[1]);
-                    if (searchParams.has("origin_link")) {
-                        targetUrl = decodeURIComponent(searchParams.get("origin_link"));
+                    let parts = url.split(/[?&]/);
+                    for (let part of parts) {
+                        if (part.toLowerCase().startsWith("origin_link=")) {
+                            targetUrl = decodeURIComponent(part.substring(12));
+                            break;
+                        }
                     }
                 } catch(e){}
             }
 
-            // Trích xuất ShopID và ItemID từ đường dẫn sản phẩm
-            const itemMatch = targetUrl.match(/(?:i\.(\d+)?\.(\d+)|product\/(\d+)\/(\d+))/);
+            // Trích xuất mã định danh sản phẩm từ link dài
+            const itemMatch = targetUrl.match(/(?:i\.(\d+)?\.(\d+)|product\/(\d+)\/(\d+))/i);
             if (itemMatch) {
                 let shopId = itemMatch[1] || itemMatch[3];
                 let itemId = itemMatch[2] || itemMatch[4];
                 let cleanProductUrl = `https://shopee.vn/product/${shopId}/${itemId}`;
                 
-                // Trả về cấu trúc link ăn mã 22% y hệt định dạng của bên Huy nhưng thay sub_id thành của bạn
                 return `https://s.shopee.vn/an_redir?origin_link=${encodeURIComponent(cleanProductUrl)}&affiliate_id=${CAMPAIGN_AFFILIATE_ID}&sub_id=${MY_SUB_ID}`;
             }
 
-            // Phương án dự phòng cho link khác sản phẩm
             let cleanBaseUrl = targetUrl.split('?')[0];
             return `https://s.shopee.vn/an_redir?origin_link=${encodeURIComponent(cleanBaseUrl)}&affiliate_id=${CAMPAIGN_AFFILIATE_ID}&sub_id=${MY_SUB_ID}`;
         }
@@ -162,7 +162,7 @@
                         <i class="fa-regular fa-copy"></i> SAO CHÉP LINK MỚI
                     </button>
                 </div>
-                <div class="text-slate-500 text-[11px] truncate font-medium"><b>Link nhập vào:</b> ${original}</div>
+                <div class="text-slate-500 text-[11px] truncate font-medium"><b>Link gốc nhập vào:</b> ${original}</div>
                 <div class="text-xs text-emerald-400 font-mono break-all bg-slate-900/60 p-2.5 rounded-lg border border-slate-800/80 line-clamp-2 select-all" data-link-out="${converted}">${converted}</div>
                 
                 <div class="grid grid-cols-2 gap-3 pt-1">
