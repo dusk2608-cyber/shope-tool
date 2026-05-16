@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Công Cụ Săn Mã Facebook Giảm 20% - 22%</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-slate-900 font-sans min-h-screen flex items-center justify-center p-4 text-slate-100">
+
+    <div class="bg-slate-800 p-6 rounded-2xl shadow-2xl max-w-md w-full border border-slate-700">
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold text-orange-500 mb-2">🛍️ Shopee FB Voucher</h1>
+            <p class="text-sm text-slate-400">Hệ thống Bypass thuật toán - Kích hoạt mã 22% Facebook độc quyền</p>
+        </div>
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1">Dán link sản phẩm Shopee tại đây:</label>
+                <input type="text" id="shopeeLink" placeholder="Dán link shopee.vn/... hoặc s.shopee.vn/..." 
+                       class="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-sm text-white placeholder-slate-400">
+            </div>
+
+            <button onclick="convertShopeeLink()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-xl shadow-lg shadow-orange-500/20 transition-all cursor-pointer text-center">
+                ✨ Kích Hoạt Mã Giảm Giá
+            </button>
+        </div>
+
+        <div id="resultBox" class="mt-6 pt-6 border-t border-slate-700 hidden">
+            <p class="text-sm font-medium text-emerald-400 flex items-center gap-1 mb-2">
+                ✅ Đã đồng bộ cấu trúc mã 22% thành công!
+            </p>
+            <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 break-all text-xs text-slate-400 mb-4 font-mono" id="convertedUrl">
+                </div>
+            
+            <a id="openViaFbBtn" href="#" target="_blank" class="block text-center w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 rounded-xl transition-all shadow-md mb-3">
+                🔵 Bước 1: Kích hoạt mã qua App Facebook
+            </a>
+
+            <a id="openDirectBtn" href="#" target="_blank" class="block text-center w-full bg-orange-600 hover:bg-orange-500 text-white font-medium py-3 rounded-xl transition-all shadow-md">
+                🟠 Bước 2: Vào thẳng Shopee áp mã sản phẩm
+            </a>
+        </div>
+
+        <div class="mt-6 p-3 bg-slate-700/50 rounded-xl border border-slate-700/60 text-xs text-slate-400 space-y-2">
+            <p class="font-semibold text-slate-300">💡 Quy trình săn mã chuẩn:</p>
+            <p>1. Bấm nút <b>màu xanh</b> trước để app Facebook kích nổ mã 22% hệ thống.</p>
+            <p>2. Quay lại bấm nút <b>màu cam</b> để vào thẳng sản phẩm trong app Shopee và thanh toán.</p>
+        </div>
+    </div>
+
+    <script>
+        // ĐIỀN TÊN TÀI KHOẢN CỦA BẠN VÀO ĐÂY ĐỂ ĐÈ COOKIE NHẬN HOA HỒNG
+        const MY_SUB_ID = "BHH2608"; 
+
+        function convertShopeeLink() {
+            const inputLink = document.getElementById('shopeeLink').value.trim();
+            const resultBox = document.getElementById('resultBox');
+            const convertedUrlDiv = document.getElementById('convertedUrl');
+            const openViaFbBtn = document.getElementById('openViaFbBtn');
+            const openDirectBtn = document.getElementById('openDirectBtn');
+
+            if (!inputLink) {
+                alert("Vui lòng dán một đường link Shopee hợp lệ!");
+                return;
+            }
+
+            let targetUrl = inputLink;
+
+            // Bóc tách ID sản phẩm nếu là link dài
+            const itemMatch = inputLink.match(/(?:i\.(\d+)?\.(\d+)|product\/(\d+)\/(\d+))/);
+            if (itemMatch) {
+                let shopId = itemMatch[1] || itemMatch[3];
+                let itemId = itemMatch[2] || itemMatch[4];
+                targetUrl = `https://shopee.vn/product/${shopId}/${itemId}`;
+            }
+
+            // KỸ THUẬT MIX ID: 
+            // - Mượn cổng CPAS có quyền nhả mã (chứa pid=facebook_cpas)
+            // - Đính kèm mã SubID của bạn (sub_id=BHH2608) ở cuối để đè nhận hoa hồng
+            let finalShopeeUrl = `https://shopee.vn/universal-link?redir=${encodeURIComponent(targetUrl)}&utm_source=facebook&utm_medium=cpas&utm_campaign=FB_ADS_VOUCHER22&pid=facebook_cpas&sub_id=${MY_SUB_ID}&sub_id2=fb_voucher&sub_id3=BHH2608_PRO`;
+
+            // Tạo Deep Link ép mở qua app Facebook để kích hoạt nguồn traffic sạch
+            let fbDeepLink = `fb://facewebmodal/fblink?href=${encodeURIComponent(finalShopeeUrl)}`;
+
+            // Xuất kết quả hiển thị
+            convertedUrlDiv.innerText = finalShopeeUrl;
+            
+            // Gắn link vào 2 nút tương ứng
+            openViaFbBtn.href = fbDeepLink;
+            openDirectBtn.href = finalShopeeUrl;
+            
+            // Hiện khung kết quả
+            resultBox.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
